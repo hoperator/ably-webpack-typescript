@@ -1,0 +1,71 @@
+<html>
+
+<head>
+	<script src="https://cdn.ably.io/lib/ably.min-1.js" type="text/javascript"></script>
+	<link rel="stylesheet" href="css/style.css">
+	<script type="text/javascript">
+
+		/* Set up a Realtime client that authenticates with the local web server auth endpoint */
+		console.log('On login page now')
+
+		let storedToken = 'anonymous'
+		let ably = undefined
+
+
+		function login(e) {
+
+			e.preventDefault()
+
+			storedToken = 'login'
+			ably = new Ably.Realtime({
+
+				//autoConnect: false,
+				useAuthToken: true,
+				authUrl: 'http://localhost:4100/auth',
+				//authMethod: 'POST',
+				authParams: {storedToken}
+			})
+
+			ably.connection.once('connected', function () {
+
+				console.log('Client connected to Ably using JWT')
+				//alert("Client successfully connected Ably using JWT auth");
+
+				var user = ably.auth.tokenDetails
+				console.log({user})
+			})
+
+			const channel = ably.channels.get('quickstart')
+			channel.subscribe('greeting', function(message) {
+				console.log("Received a greeting message in realtime: ", {message})
+			})
+
+			console.log('Fetching JWT token from auth server')
+
+		}
+	</script>
+
+</head>
+
+<body>
+<section class="container">
+	<div class="login">
+		<h1>Ably JWT auth example</h1>
+
+		<form>
+			<input type="text" placeholder="Enter Username" name="username">
+			<br/>
+			<input type="password" placeholder="Password" name="password">
+			<br/>
+			<p class="submit">
+				<button type="submit" onclick="login(event)">Login</button>
+			</p>
+		</form>
+
+	</div>
+</section>
+<div id="root-ele"></div>
+<script src="./test-app.js"></script>
+</body>
+
+</html>
